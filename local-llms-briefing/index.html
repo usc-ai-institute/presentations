@@ -1,0 +1,912 @@
+<title>Keep It in the Building</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<style>
+/* Layout: a fixed 1600×900 stage scaled to the window. A yellow "handling" strip tops every slide like a document marking; slides alternate ink and paper; one amber close. */
+:root{
+  --ink:#111518; --ink-2:#1A2128; --ink-3:#2A333B; --paper:#E7EAE6; --card:#F7F8F5;
+  --steel:#525D66; --mist:#9AA6AF; --rule:#C3C9C4;
+  --signal:#F2B705; --leak:#E0402F; --leak-dk:#B02E1C; --leak-lt:#FF7A5C;
+  --safe:#2B59C3; --safe-lt:#86A6F5; --night:#0A0D0F;
+  --display:'Archivo','Arial Narrow',Arial,sans-serif;
+  --body:'Public Sans',Arial,sans-serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--night);color:var(--paper);font-family:var(--body);overflow:hidden}
+p,h1,h2,h3{margin:0}
+#stage{position:absolute;left:0;top:0;width:1600px;height:900px;transform-origin:0 0;overflow:hidden;background:var(--ink);box-shadow:0 30px 80px rgba(0,0,0,.55)}
+
+/* slides */
+.slide{position:absolute;inset:0;padding:112px 96px 72px;display:flex;flex-direction:column;gap:40px;opacity:0;visibility:hidden;transition:opacity .5s ease,visibility 0s linear .5s}
+.slide.active{opacity:1;visibility:visible;transition:opacity .5s ease}
+.dark{background:var(--ink);color:var(--paper)}
+.light{background:var(--paper);color:var(--ink)}
+.amber{background:var(--signal);color:var(--ink)}
+.strip{position:absolute;left:0;right:0;top:0;height:40px;padding:0 96px;display:flex;align-items:center;justify-content:space-between;background:var(--signal);color:var(--ink);font:700 14px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;z-index:3}
+.amber .strip{background:var(--ink);color:var(--signal)}
+.fx{position:absolute;left:0;top:0;width:1600px;height:900px;z-index:0}
+.slide>*:not(.fx):not(.strip){position:relative;z-index:1}
+
+/* type */
+.kicker{font:600 18px/1.2 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--signal)}
+.light .kicker,.amber .kicker{color:var(--leak-dk)}
+.amber .kicker{color:var(--ink)}
+.hero{font-family:var(--display);font-stretch:125%;font-weight:900;font-size:128px;line-height:.9;text-transform:uppercase;letter-spacing:-.01em}
+.h2{font-family:var(--display);font-stretch:118%;font-weight:800;font-size:68px;line-height:1.02;letter-spacing:-.01em;text-wrap:balance;max-width:1320px}
+.lead{font-size:28px;line-height:1.4;max-width:1100px}
+.dark .lead{color:var(--mist)} .light .lead{color:var(--steel)}
+.small{font:500 18px/1.45 var(--mono)}
+.dark .small{color:var(--mist)} .light .small{color:var(--steel)}
+.ph{background:rgba(242,183,5,.22);padding:0 6px;border-radius:4px}
+.light .ph,.amber .ph{background:rgba(17,21,24,.1)}
+
+/* 1 cover */
+.cover{justify-content:space-between}
+.cover-text{display:flex;flex-direction:column;gap:28px;width:980px;margin-top:40px}
+.cover .lead{color:var(--paper)}
+
+/* 3 zero */
+.zero-wrap{flex:1;display:grid;grid-template-columns:600px 1fr;gap:56px;align-items:center}
+.zero{font-family:var(--display);font-stretch:125%;font-weight:900;font-size:600px;line-height:.78;letter-spacing:-.04em}
+.zero-bar{height:28px;width:440px;background:var(--signal);margin-top:28px;transform-origin:left}
+.zero-copy{display:flex;flex-direction:column;gap:28px}
+
+/* 4 lanes */
+.lanes{display:flex;flex-direction:column;gap:36px}
+.lane{display:grid;grid-template-columns:180px 1228px;align-items:start}
+.lane-label{font:700 20px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;padding-top:58px}
+.lane-label.c{color:var(--leak-dk)} .lane-label.l{color:var(--safe)}
+.track{position:relative;height:170px}
+.track svg{position:absolute;inset:0}
+.wall{fill:var(--card);stroke:var(--safe);stroke-width:2;stroke-dasharray:8 6}
+.wall-label{font:700 14px var(--mono);letter-spacing:.14em;fill:var(--safe)}
+.flow{stroke-width:8;stroke-linecap:round;stroke-dasharray:2 22;fill:none;animation:flow .6s linear infinite}
+.flow.c{stroke:var(--leak)} .flow.l{stroke:var(--safe)}
+@keyframes flow{to{stroke-dashoffset:-24}}
+.node{fill:var(--paper);stroke:var(--ink);stroke-width:3}
+.node.c{stroke:var(--leak-dk)}
+.node-label{position:absolute;top:104px;width:240px;transform:translateX(-50%);text-align:center;font-size:22px;font-weight:600;line-height:1.25}
+
+/* 5 redaction */
+.redact{flex:1;display:grid;grid-template-columns:600px 1fr;gap:72px;align-items:center}
+.redact-copy{display:flex;flex-direction:column;gap:28px}
+.redact .h2{font-size:58px}
+.doc{position:relative;width:640px;height:620px;background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:40px 44px;transform:rotate(-1.5deg);box-shadow:0 24px 50px rgba(17,21,24,.18);display:flex;flex-direction:column;gap:16px}
+.doc-head{font:700 15px var(--mono);letter-spacing:.16em;color:var(--steel);display:flex;justify-content:space-between;padding-bottom:14px;border-bottom:2px solid var(--ink)}
+.ln{height:14px;background:var(--rule);border-radius:2px}
+.rd{height:20px;background:var(--ink);border-radius:1px}
+.lrow{display:flex;gap:12px}
+.stamp{position:absolute;border:4px solid currentColor;padding:6px 16px;font:700 30px/1 var(--mono);letter-spacing:.06em;background:rgba(247,248,245,.75);transform:rotate(var(--r))}
+.play .stamp{animation:stamp .45s cubic-bezier(.3,1.6,.5,1) both;animation-delay:var(--d)}
+@keyframes stamp{from{opacity:0;transform:rotate(var(--r)) scale(1.9)}to{opacity:1;transform:rotate(var(--r)) scale(1)}}
+
+/* 6 chart */
+.chart{width:1408px;height:440px;flex:none}
+.tight{gap:28px}
+.axis{stroke:var(--mist);stroke-width:2}
+.cl{stroke:var(--leak-lt);stroke-width:7;fill:none;stroke-linecap:round}
+.ll{stroke:var(--safe-lt);stroke-width:7;fill:none;stroke-linecap:round}
+.be{stroke:var(--mist);stroke-width:2;stroke-dasharray:6 8}
+.ct{font:500 22px var(--mono);fill:var(--mist)}
+.ct.c{fill:var(--leak-lt);font-weight:700} .ct.l{fill:var(--safe-lt);font-weight:700} .ct.w{fill:var(--paper)}
+.dot{fill:var(--signal)}
+.play .draw{animation:draw 1.6s ease both;animation-delay:var(--d,0s)}
+@keyframes draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+.play .pop{animation:pop .5s ease both;animation-delay:1.7s;transform-box:fill-box;transform-origin:center}
+@keyframes pop{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
+
+/* data charts */
+.grid{stroke:var(--rule);stroke-width:1.5}
+.grid-d{stroke:var(--ink-3);stroke-width:1.5}
+.axis-l{stroke:var(--steel);stroke-width:2}
+.lt{font:500 22px var(--mono);fill:var(--steel)}
+.lt.c{fill:var(--leak-dk);font-weight:700} .lt.o{fill:var(--safe);font-weight:700} .lt.k{fill:var(--ink);font-weight:600}
+.gap-area{fill:var(--signal);opacity:.4}
+.cl-l{stroke:var(--leak-dk);stroke-width:6;fill:none;stroke-linejoin:round;stroke-linecap:round}
+.ll-l{stroke:var(--safe);stroke-width:6;fill:none;stroke-linejoin:round;stroke-linecap:round}
+.pt-c{fill:var(--leak-dk)} .pt-o{fill:var(--safe)}
+.sc-c{fill:var(--leak-lt);stroke:var(--ink);stroke-width:2}
+.sc-o{fill:var(--safe-lt);stroke:var(--ink);stroke-width:2}
+.sl{font:600 20px var(--mono)}
+.sl.c{fill:var(--leak-lt)} .sl.o{fill:var(--safe-lt)} .sl.w{fill:var(--signal)} .sl.m{fill:var(--mist)}
+.ring{fill:none;stroke:var(--signal);stroke-width:4}
+.ax{font-weight:600}
+.lt.ax{fill:var(--ink)} .ct.ax{fill:var(--paper)}
+.h2.one{font-size:60px;max-width:none}
+.read{font-size:24px;line-height:1.45;max-width:1408px}
+.light .read{color:var(--ink)} .dark .read{color:var(--paper)}
+.read b{font-weight:700}
+.light .read b{color:var(--leak-dk)} .dark .read b{color:var(--signal)}
+.tight{gap:22px}
+/* options bars */
+.bars{display:flex;flex-direction:column;gap:4px}
+.bgrp{font:700 15px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mist);padding-top:10px}
+.brow{display:grid;grid-template-columns:300px 1fr 170px 220px;align-items:center;gap:16px;height:30px}
+.bn{font-size:21px;font-weight:600}
+.btrack{height:20px;background:linear-gradient(to right,transparent calc(96% - 2px),var(--leak-lt) calc(96% - 2px) 96%,transparent 96%),var(--ink-2);border-radius:3px;overflow:hidden}
+.bar{height:100%;border-radius:3px;transform-origin:left}
+.bar.c{background:var(--leak-lt)}
+.bar.b{background:repeating-linear-gradient(135deg,var(--safe-lt) 0 8px,transparent 8px 14px);box-shadow:inset 0 0 0 2px var(--safe-lt)}
+.bar.a{background:var(--signal)}
+.bar.s{background:var(--safe-lt)}
+.bv{font:700 22px var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.bv span{font-weight:500;color:var(--mist)}
+.bt{font:600 17px var(--mono);letter-spacing:.04em}
+.bt.c{color:var(--leak-lt)} .bt.b{color:var(--safe-lt)} .bt.a{color:var(--signal)} .bt.s{color:var(--safe-lt)}
+.play .bar{animation:grow .8s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--d)}
+/* routes */
+.routes{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.route{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:28px;display:flex;flex-direction:column;gap:12px}
+.rpct{font-family:var(--display);font-stretch:125%;font-weight:900;font-size:96px;line-height:.95}
+.meter{height:14px;background:var(--rule);border-radius:7px;overflow:hidden}
+.fill{height:100%;border-radius:7px;transform-origin:left}
+.fill.s{background:var(--safe)} .fill.b{background:repeating-linear-gradient(135deg,var(--safe) 0 8px,#5d7fd4 8px 14px)} .fill.c{background:var(--leak)}
+.play .fill{animation:grow .9s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--d)}
+.rsub{font-size:21px;line-height:1.35;color:var(--steel);min-height:58px}
+.rprops{display:grid;grid-template-columns:70px 1fr;gap:8px 14px;margin:6px 0 0;padding-top:14px;border-top:1px solid var(--rule);font-size:21px;line-height:1.35}
+.rprops dt{font:700 14px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--steel);padding-top:4px}
+.rprops dd{margin:0}
+.rprops dd.warn{color:var(--leak-dk);font-weight:700}
+/* demo */
+.pipe{display:grid;grid-template-columns:1fr 40px 1fr 40px 1fr 40px 1fr;align-items:stretch;gap:12px}
+x-arrow{display:flex;align-items:center;justify-content:center;font:700 34px var(--mono);color:var(--signal)}
+.pstep{background:var(--ink-2);border:1px solid var(--ink-3);border-radius:12px;padding:22px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.ptag{font:700 14px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--signal)}
+.pq{font:400 19px/1.5 var(--mono);color:var(--mist)}
+.pbig{font-size:28px;font-weight:700;line-height:1.2}
+.psub{font-size:20px;color:var(--mist)}
+mark{padding:1px 4px;border-radius:3px}
+mark.raw{background:rgba(224,64,47,.25);color:var(--leak-lt)}
+mark.red{background:var(--paper);color:var(--ink);font-weight:700}
+.dstats{display:grid;grid-template-columns:repeat(4,1fr);gap:28px}
+.dstats>div{border-top:3px solid var(--signal);padding-top:14px}
+.dnum{font-family:var(--display);font-stretch:125%;font-weight:900;font-size:84px;line-height:.95}
+.dlbl{font-size:22px;color:var(--mist);margin-top:8px}
+.titlerow{display:flex;align-items:flex-end;justify-content:space-between;gap:32px}
+.titlerow .h2{min-width:0;flex:1}
+.legend{display:flex;gap:28px;font:600 20px var(--mono);white-space:nowrap;padding-bottom:6px}
+.legend p{display:flex;align-items:center;gap:10px}
+.lg{width:18px;height:18px;border-radius:50%;display:inline-block}
+.lg.c{background:var(--leak-lt)} .lg.o{background:var(--safe-lt)}
+/* bars on light */
+.light .btrack{background:var(--rule)}
+.light .bar.c{background:var(--leak)} .light .bar.s{background:var(--safe)} .light .bar.a{background:#C99700}
+.light .bar.b{background:repeating-linear-gradient(135deg,var(--safe) 0 8px,transparent 8px 14px);box-shadow:inset 0 0 0 2px var(--safe)}
+.light .bt.c{color:var(--leak-dk)} .light .bt.b,.light .bt.s{color:var(--safe)} .light .bt.a{color:#7A5A00}
+.light .bv span{color:var(--steel)}
+.btrack.nl{background-image:none}
+.sub{font:500 20px/1.4 var(--mono);margin-top:-6px}
+.dark .sub{color:var(--mist)} .light .sub{color:var(--steel)}
+/* policy */
+.quotes{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.qt{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:24px 26px;display:flex;flex-direction:column;gap:10px}
+.qt.sc{border:2px solid var(--ink)}
+.qwho{font:700 15px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--leak-dk)}
+.qt.sc .qwho{color:var(--ink)}
+.qtext{font-size:25px;line-height:1.35;font-weight:500}
+.qnote{font-size:19px;color:var(--steel)}
+.peer{font-size:26px;background:var(--ink);color:var(--paper);padding:16px 22px;border-radius:10px}
+.peer b{color:var(--signal)}
+/* cost */
+.costwrap{display:grid;grid-template-columns:1fr 400px;gap:40px;align-items:center}
+.costchart{width:100%;height:auto;max-height:520px}
+.cl2{stroke:var(--leak-lt);stroke-width:5;fill:none;opacity:.75}
+.ws{stroke:var(--signal);stroke-width:7;fill:none}
+.ct.c2{fill:var(--leak-lt)} .ct.wsl{fill:var(--signal);font-weight:700}
+.marker{stroke:var(--paper);stroke-width:2;stroke-dasharray:4 6;opacity:.6}
+.calc{background:var(--ink-2);border:1px solid var(--ink-3);border-radius:14px;padding:26px;display:flex;flex-direction:column;gap:14px}
+.clab{font:600 20px var(--mono);color:var(--mist)} .clab b{color:var(--paper);font-size:28px}
+#staffRange{width:100%;accent-color:var(--signal);height:28px}
+.crow{display:flex;justify-content:space-between;align-items:baseline;gap:12px;border-top:1px solid var(--ink-3);padding-top:12px}
+.crow p{font-size:19px;line-height:1.3} .crow p span{display:block;font:500 15px var(--mono);color:var(--mist)}
+.crow b{font:700 26px var(--mono);color:var(--leak-lt);font-variant-numeric:tabular-nums;white-space:nowrap}
+.crow.own b{color:var(--safe-lt)}
+.cnote{font:500 15px var(--mono);color:var(--mist);text-align:right}
+/* vendor timeline */
+.vend{display:grid;grid-template-columns:1fr 440px;gap:48px;align-items:start}
+.evs{display:flex;flex-direction:column}
+.ev{display:grid;grid-template-columns:170px 110px 1fr;gap:16px;align-items:baseline;border-top:1px solid var(--rule);padding:9px 0}
+.evd{font:700 18px var(--mono);color:var(--steel)}
+.evt{font:700 14px var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:4px 8px;border-radius:4px;justify-self:start}
+.evt.retired{background:rgba(224,64,47,.14);color:var(--leak-dk)} .evt.policy{background:rgba(43,89,195,.12);color:var(--safe)} .evt.outage{background:rgba(17,21,24,.08);color:var(--ink)}
+.evx{font-size:20px;line-height:1.35}
+.ours{background:var(--ink);color:var(--paper);border-radius:14px;padding:32px;display:flex;flex-direction:column;gap:18px}
+.oursl{margin:0;padding-left:24px;display:flex;flex-direction:column;gap:14px;font-size:26px;line-height:1.3}
+.oursl li::marker{color:var(--signal)}
+.brow.wide{grid-template-columns:260px 1fr 80px 470px}
+/* peers */
+.peers{display:grid;grid-template-columns:1.3fr 1fr 1fr;grid-template-rows:auto auto;gap:20px}
+.pc{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:8px}
+.pc.big{grid-row:span 2;background:var(--ink);color:var(--paper);border-color:var(--ink);justify-content:center}
+.pc.big .pdesc{color:var(--mist)}
+.pc.sc{border:2px solid var(--leak-dk)}
+.pnum{font-family:var(--display);font-stretch:125%;font-weight:900;font-size:52px;line-height:.95}
+.pc.big .pnum{font-size:110px;color:var(--signal)}
+.pname{font-size:24px;font-weight:700}
+.pdesc{font-size:19px;line-height:1.35;color:var(--steel)}
+/* zero row */
+.zrow{display:grid;grid-template-columns:auto 1fr;gap:40px;align-items:center;border-top:3px solid var(--ink);padding-top:20px}
+.znum{font-family:var(--display);font-stretch:125%;font-weight:900;font-size:150px;line-height:.8;color:var(--ink);border-bottom:14px solid var(--signal);padding-bottom:8px}
+.ztext{font-size:26px;line-height:1.4;color:var(--steel);max-width:1100px}
+.ztext b{color:var(--ink);font-size:34px;display:block;margin-bottom:6px}
+/* federal */
+.fedq{display:flex;flex-direction:column;gap:14px;border-left:8px solid var(--signal);padding-left:28px}
+.bigq{font-family:var(--display);font-stretch:110%;font-weight:700;font-size:50px;line-height:1.12;max-width:1380px;text-wrap:balance}
+.bigq span{color:var(--signal)}
+.fedgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.fg{background:var(--ink-2);border:1px solid var(--ink-3);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:8px}
+.fgw{font:700 16px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--signal)}
+.fg p:not(.fgw){font-size:21px;line-height:1.35}
+.dark .peer{background:var(--ink-2);border:1px solid var(--ink-3)}
+/* states */
+.spec{display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;gap:16px}
+.sp{display:flex;flex-direction:column;gap:10px}
+.spt{font:700 15px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--steel);border-bottom:3px solid var(--ink);padding-bottom:8px}
+.sp.own .spt{color:var(--leak-dk);border-color:var(--signal)}
+.st{background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:4px}
+.st b{font-size:21px} .st span{font-size:17px;line-height:1.35;color:var(--steel)}
+.st.none{background:var(--signal);border-color:var(--signal)} .st.none span{color:var(--ink);font-weight:600}
+.arrowrow{display:flex;align-items:center;gap:14px;font:600 16px var(--mono);color:var(--steel)}
+.arr{flex:1;height:3px;background:var(--steel);position:relative}
+.arr::after{content:"";position:absolute;right:-2px;top:-7px;border-left:14px solid var(--steel);border-top:8.5px solid transparent;border-bottom:8.5px solid transparent}
+.rules{display:grid;grid-template-columns:200px 1fr 1fr 1fr;gap:18px;align-items:start;background:var(--ink);color:var(--paper);border-radius:12px;padding:18px 22px}
+.rules p{font-size:18px;line-height:1.4} .rules p b{color:var(--signal);margin-right:6px}
+.rl{font:700 15px var(--mono)!important;letter-spacing:.1em;text-transform:uppercase;color:var(--signal)}
+/* usage + cost */
+.usewrap{display:grid;grid-template-columns:1fr 400px;gap:40px;align-items:center}
+.usechart{width:100%;height:auto}
+.gline{stroke:var(--signal);stroke-width:6;fill:none;stroke-linejoin:round}
+.gdot{fill:var(--signal);stroke:var(--ink);stroke-width:3}
+.usefacts{display:flex;flex-direction:column;gap:22px}
+.usefacts>div{border-top:3px solid var(--signal);padding-top:12px}
+.ufn{font-family:var(--display);font-stretch:125%;font-weight:900;font-size:72px;line-height:.95}
+.uft{font-size:22px;line-height:1.35;color:var(--mist);margin-top:6px}
+.legend.wide{gap:36px;font-size:18px;padding:0}
+.ln{width:34px;height:6px;border-radius:3px;display:inline-block}
+.ln.op{background:var(--leak-lt)} .ln.so{background:var(--leak-lt);opacity:.6} .ln.w1{background:var(--signal)} .ln.w8{background:var(--safe-lt)}
+.capx{stroke:var(--paper);stroke-width:3}
+.gapbr{stroke:var(--ink);stroke-width:3}
+/* cost columns */
+.ccols{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;flex:1;align-items:start}
+.cc{background:var(--ink-2);border:1px solid var(--ink-3);border-radius:14px;padding:26px;display:flex;flex-direction:column;gap:14px}
+.cct{font:700 16px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--signal)}
+.cctok{font-family:var(--display);font-stretch:110%;font-weight:800;font-size:32px;line-height:1.1}
+.ccs{font-size:20px;color:var(--mist);margin-bottom:8px}
+.cr{display:grid;grid-template-columns:1fr auto;gap:6px 12px;border-top:1px solid var(--ink-3);padding-top:12px}
+.crn{font-size:20px;grid-column:1}
+.crv{grid-column:2;grid-row:1 / span 2;align-self:center;font:700 30px var(--mono);font-variant-numeric:tabular-nums}
+.crv.c,.crv.c2{color:var(--leak-lt)} .crv.o{color:var(--safe-lt)}
+.crt{grid-column:1;height:14px;background:var(--ink);border-radius:7px;overflow:hidden}
+.crb{height:100%;border-radius:7px;transform-origin:left}
+.crb.c{background:var(--leak-lt)} .crb.c2{background:var(--leak-lt);opacity:.65} .crb.o{background:var(--safe-lt)}
+.play .crb{animation:grow .9s cubic-bezier(.2,.8,.2,1) both}
+/* governments */
+.govs{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;flex:1;align-content:start}
+.gv{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:8px}
+.gvn{font-family:var(--display);font-stretch:120%;font-weight:900;font-size:60px;line-height:1;color:var(--safe)}
+.gvw{font-size:23px;font-weight:700}
+.gvd{font-size:20px;line-height:1.38;color:var(--steel)}
+.gvd b{color:var(--ink)}
+.gv.first{background:var(--signal);border-color:var(--signal)}
+.gv.first .gvn{color:var(--ink);font-size:52px}
+.gv.first .gvd{color:var(--ink);font-weight:700;font-size:24px}
+/* schools */
+.schools{display:grid;grid-template-columns:740px 1fr;gap:56px;align-items:center;flex:1}
+.points{display:flex;flex-direction:column;gap:26px}
+.pt{border-left:4px solid var(--signal);padding-left:24px;display:flex;flex-direction:column;gap:6px}
+.pt h3{font-size:30px;font-weight:700}
+.pt p{font-size:23px;line-height:1.4;color:var(--mist)}
+.sch-svg{width:620px;height:580px}
+.sch{fill:var(--ink-2);stroke:var(--paper);stroke-width:3}
+.srv{fill:var(--ink-2);stroke:var(--signal);stroke-width:4}
+.srv-l{stroke:var(--signal);stroke-width:3}
+.bnd{fill:none;stroke:var(--safe-lt);stroke-width:2.5;stroke-dasharray:10 8}
+.no{stroke:var(--leak-lt);stroke-width:4;stroke-dasharray:6 8;fill:none}
+.x{stroke:var(--leak-lt);stroke-width:6;stroke-linecap:round}
+.cld{fill:var(--ink-2);stroke:var(--leak-lt);stroke-width:3}
+.st{font:600 18px var(--mono);fill:var(--paper)}
+.st.s{fill:var(--signal)} .st.b{fill:var(--safe-lt)} .st.r{fill:var(--leak-lt)}
+.flow.d{stroke:var(--safe-lt)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:28px 64px}
+.stat{border-top:3px solid var(--ink);padding-top:18px;display:flex;flex-direction:column;gap:10px}
+.num{font-family:var(--display);font-stretch:125%;font-weight:900;font-size:132px;line-height:.9;letter-spacing:-.02em}
+.lbl{font-size:24px;line-height:1.35;color:var(--steel);max-width:560px}
+
+/* 7 vendor */
+.vendor{flex:1;display:grid;grid-template-columns:760px 1fr;gap:64px;align-items:center}
+.toasts{display:flex;flex-direction:column;gap:14px}
+.toast{display:grid;grid-template-columns:14px 1fr;gap:18px;align-items:start;background:var(--card);border:1px solid var(--rule);border-radius:10px;padding:18px 22px;box-shadow:0 8px 20px rgba(17,21,24,.08)}
+.toast i{width:14px;height:14px;border-radius:50%;background:var(--leak);margin-top:6px}
+.toast b{display:block;font-size:22px}
+.toast span{font-size:20px;color:var(--steel)}
+.play .toast{animation:toast .5s ease both;animation-delay:var(--d)}
+@keyframes toast{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:none}}
+.file{background:var(--ink);color:var(--paper);border-radius:14px;padding:40px;display:flex;flex-direction:column;gap:24px}
+.file-name{font:700 36px var(--mono);color:var(--signal)}
+.props{display:grid;grid-template-columns:150px 1fr;gap:14px 20px;font:500 21px/1.3 var(--mono)}
+.props dt{color:var(--mist)} .props dd{margin:0}
+
+/* 8 terminal */
+.term{background:#0B0F12;border:1px solid var(--ink-3);border-radius:12px;overflow:hidden}
+.term-bar{display:flex;justify-content:space-between;align-items:center;padding:14px 24px;border-bottom:1px solid var(--ink-3);font:500 17px var(--mono);color:var(--mist)}
+.pill{background:var(--signal);color:var(--ink);font:700 15px var(--mono);letter-spacing:.08em;padding:6px 12px;border-radius:999px;text-transform:uppercase}
+.term-body{padding:26px 32px;font:400 23px/1.6 var(--mono);min-height:250px}
+.term-body .you{color:var(--signal)}
+.term-body .q{color:var(--mist)}
+#answer{white-space:pre-wrap;color:var(--paper)}
+.caret{display:inline-block;width:12px;height:24px;background:var(--signal);vertical-align:-4px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.chips{display:flex;flex-wrap:wrap;gap:12px}
+.chip{border:1px solid var(--ink-3);background:var(--ink-2);border-radius:999px;padding:10px 20px;font-size:20px}
+
+/* 9 deployment */
+.bound{border:2px dashed var(--safe);border-radius:16px;padding:32px 40px 40px;display:flex;flex-direction:column;gap:24px}
+.bound-label{font:700 16px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--safe)}
+.hops{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:72px}
+.hops svg{position:absolute;left:0;top:0;width:100%;height:80px;z-index:0}
+.hop{position:relative;z-index:1;background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:22px;display:flex;flex-direction:column;gap:8px}
+.hop h3{font-size:26px;font-weight:700}
+.hop p{font-size:20px;line-height:1.35;color:var(--steel)}
+.hop .tag{font:700 14px var(--mono);letter-spacing:.14em;color:var(--safe);text-transform:uppercase}
+.url{align-self:flex-start;font:600 24px var(--mono);background:var(--ink);color:var(--paper);padding:14px 22px;border-radius:10px}
+.url b{color:var(--signal)}
+
+/* 10 tradeoffs */
+.trade{display:grid;grid-template-columns:1fr 1fr;column-gap:64px}
+.trade>div{border-top:2px solid var(--rule);padding:16px 0}
+.trade .t{font-family:var(--display);font-stretch:110%;font-weight:700;font-size:30px;line-height:1.15}
+.trade .a{font-size:26px;line-height:1.4;color:var(--steel);display:flex;align-items:center}
+.trade-head{font:700 15px var(--mono)!important;letter-spacing:.14em;text-transform:uppercase;border-top:none!important;padding:0 0 10px!important}
+.trade-head.t1{color:var(--leak-dk)} .trade-head.t2{color:var(--safe)}
+
+/* 11 sorter */
+.sorter{flex:1;display:grid;grid-template-columns:420px 1fr;gap:48px;align-items:start}
+.col-label{font:700 15px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--mist);margin-bottom:14px}
+.inbox{display:flex;flex-direction:column;gap:12px;min-height:560px}
+.lane-box{border:3px dashed;border-radius:14px;padding:20px 24px 24px;display:flex;flex-direction:column;gap:14px}
+.lane-box.local{border-color:var(--signal);min-height:340px}
+.lane-box.cloud{border-color:var(--leak-lt);min-height:170px}
+.lane-box h3{font:700 18px var(--mono);letter-spacing:.12em;text-transform:uppercase}
+.lane-box.local h3{color:var(--signal)} .lane-box.cloud h3{color:var(--leak-lt)}
+.lane-box h3 span{color:var(--mist);font-weight:500;letter-spacing:.02em;text-transform:none}
+.slots{display:flex;flex-wrap:wrap;gap:12px}
+.lanes-col{display:flex;flex-direction:column;gap:24px}
+.req{width:400px;text-align:left;background:var(--ink-2);border:1px solid var(--ink-3);color:var(--paper);border-radius:10px;padding:14px 20px;display:flex;flex-direction:column;gap:4px;cursor:pointer;font-family:var(--body)}
+.req b{font-size:22px;font-weight:600}
+.req span{font:500 15px var(--mono);color:var(--mist)}
+.req:focus-visible,button:focus-visible{outline:3px solid var(--signal);outline-offset:3px}
+.replay{align-self:flex-start;background:none;border:1px solid var(--mist);color:var(--paper);font:600 16px var(--mono);padding:10px 16px;border-radius:8px;cursor:pointer}
+
+/* 12 close */
+.steps{display:flex;flex-direction:column}
+.step{display:grid;grid-template-columns:760px 1fr;align-items:center;border-top:3px solid var(--ink);padding:18px 0}
+.step .w{font-family:var(--display);font-stretch:125%;font-weight:900;font-size:112px;line-height:.95;text-transform:uppercase}
+.step p{font-size:28px;line-height:1.35;font-weight:500}
+.close-line{font-family:var(--display);font-stretch:110%;font-weight:800;font-size:40px}
+
+/* shared motion */
+.play .rise{animation:rise .8s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--d,0s)}
+@keyframes rise{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+.play .zero-bar{animation:grow .9s .4s cubic-bezier(.2,.8,.2,1) both}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+/* chrome */
+#bar{position:fixed;left:0;right:0;bottom:0;height:calc(56px + env(safe-area-inset-bottom,0px));padding:0 16px env(safe-area-inset-bottom,0px);display:flex;align-items:center;justify-content:space-between;gap:16px;color:var(--mist);font:500 14px var(--mono)}
+#bar .btns{display:flex;align-items:center;gap:8px;margin-left:auto}
+#bar button{background:var(--ink-2);border:1px solid var(--ink-3);color:var(--paper);font:600 14px var(--mono);padding:8px 12px;border-radius:8px;cursor:pointer}
+#bar button[aria-pressed="true"]{background:var(--signal);color:var(--ink);border-color:var(--signal)}
+#count{min-width:64px;text-align:center;font-variant-numeric:tabular-nums}
+#notes{position:fixed;left:16px;right:16px;bottom:calc(64px + env(safe-area-inset-bottom,0px));max-height:38vh;overflow:auto;background:var(--ink-2);border:1px solid var(--ink-3);border-radius:12px;padding:18px 22px;z-index:10}
+#notes .nl{font:700 12px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--signal);margin-bottom:8px}
+#notesText{font-size:17px;line-height:1.55;max-width:75ch;color:var(--paper)}
+@media (max-width:700px){#bar .hint{display:none}}
+
+@media (prefers-reduced-motion:reduce){
+  .slide,.slide.active{transition:none}
+  .play *,.flow,.caret{animation:none!important}
+}
+</style>
+
+<div id="stage">
+
+<!-- 1 -->
+<section class="slide dark cover" data-label="Opening" data-notes="Today's question is simple: when our staff use AI, where does the data go? I'm going to argue we should run AI models on hardware we own, for four reasons: privacy, keeping sensitive state data in-house, cost, and independence from any one vendor. The animation is the whole idea: our data moving around freely, but inside our own walls.">
+  <canvas class="fx" data-fx="contain"></canvas>
+  <div class="cover-text">
+    <p class="kicker rise" style="--d:.1s">Running AI models on our own hardware</p>
+    <h1 class="hero rise" style="--d:.2s">Keep it<br>in the<br>building.</h1>
+    <p class="lead rise" style="--d:.45s">Privacy · student and health data · cost · vendor independence</p>
+  </div>
+  <p class="small">AI Institute of South Carolina · October 6, 2026</p>
+</section>
+
+<!-- 2 -->
+<section class="slide dark" data-label="The problem" data-notes="With a commercial chatbot or API, whatever a staff member types or uploads is sent to the vendor: the question, any paragraph they paste, any file they attach. It is processed on the vendor's servers and often stored there under the vendor's retention policy. That includes sensitive material people paste without thinking.">
+  <canvas class="fx" data-fx="leak"></canvas>
+  <h2 class="h2 rise" style="--d:.1s">Every prompt to a cloud AI leaves the building.</h2>
+  <p class="lead rise" style="--d:.3s">Questions, pasted paragraphs, uploaded spreadsheets: processed, and often stored, on someone else's servers.</p>
+</section>
+
+<!-- 4 -->
+<section class="slide light" data-label="Privacy" data-notes="With a local model, the data path ends at our own server, so nothing has to be trusted to a third party. (This assumes web search and other outside tools are switched off.) For staff, the experience is identical: a chat window in the browser. What changes is the path. In the cloud path, data crosses our wall, travels the public internet, and ends up in the vendor's servers and logs. In the local path, every hop is inside our walls. Open-weight models like gpt-oss, Llama, Qwen, Mistral and Gemma are downloaded once and run on hardware we control.">
+  <h2 class="h2">Same chat window. Different path.</h2>
+  <div class="lanes">
+    <div class="lane">
+      <p class="lane-label c">Cloud AI</p>
+      <div class="track">
+        <svg viewBox="0 0 1228 170" aria-hidden="true">
+          <rect class="wall" x="2" y="2" width="226" height="166" rx="10"/>
+          <text class="wall-label" x="18" y="28">OUR WALLS</text>
+          <line class="flow c" x1="110" y1="70" x2="1120" y2="70"/>
+          <circle class="node" cx="110" cy="70" r="22"/>
+          <circle class="node c" cx="450" cy="70" r="22"/>
+          <circle class="node c" cx="790" cy="70" r="22"/>
+          <circle class="node c" cx="1120" cy="70" r="22"/>
+        </svg>
+        <p class="node-label" style="left:110px">You</p>
+        <p class="node-label" style="left:450px">Public internet</p>
+        <p class="node-label" style="left:790px">Vendor servers</p>
+        <p class="node-label" style="left:1120px">Vendor logs</p>
+      </div>
+    </div>
+    <div class="lane">
+      <p class="lane-label l">Local AI</p>
+      <div class="track">
+        <svg viewBox="0 0 1228 170" aria-hidden="true">
+          <rect class="wall" x="2" y="2" width="1224" height="166" rx="10"/>
+          <text class="wall-label" x="18" y="28">OUR WALLS</text>
+          <line class="flow l" x1="110" y1="70" x2="1120" y2="70"/>
+          <circle class="node" cx="110" cy="70" r="22"/>
+          <circle class="node" cx="450" cy="70" r="22"/>
+          <circle class="node" cx="790" cy="70" r="22"/>
+          <circle class="node" cx="1120" cy="70" r="22"/>
+        </svg>
+        <p class="node-label" style="left:110px">You</p>
+        <p class="node-label" style="left:450px">Campus network</p>
+        <p class="node-label" style="left:790px">Our server</p>
+        <p class="node-label" style="left:1120px">Our logs</p>
+      </div>
+    </div>
+  </div>
+  <div class="zrow">
+    <p class="znum rise" style="--d:.2s">0</p>
+    <p class="ztext"><b>bytes of prompt data leave our network</b> on the local path. Open-weight models (gpt-oss, Llama, Qwen, Mistral, Gemma) are downloaded once and run on hardware we control.</p>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="slide light" data-label="Sensitive data" data-notes="These are the categories where staff would get the most out of AI: summarizing case files, drafting responses, reviewing documents. They are also the categories where sending data to an outside vendor is restricted or needs legal review. Running the model in-house removes that conflict. Confirm the specific rules with our compliance office; this lists common frameworks, not legal advice.">
+  <div class="redact">
+    <div class="redact-copy">
+      <p class="kicker">Sensitive state data</p>
+      <h2 class="h2">The data we'd most want AI for is the data we can't send out.</h2>
+      <p class="small">Student records · health · criminal justice · personal identifiers · drafts and legal · research data</p>
+    </div>
+    <div class="doc" role="img" aria-label="An example case file with redacted lines, stamped FERPA, HIPAA, CJIS, PII and Privileged">
+      <div class="doc-head"><span>INTAKE RECORD</span><span>EXAMPLE</span></div>
+      <div class="lrow"><div class="ln" style="width:30%"></div><div class="rd" style="width:40%"></div></div>
+      <div class="ln" style="width:92%"></div>
+      <div class="lrow"><div class="rd" style="width:55%"></div><div class="ln" style="width:35%"></div></div>
+      <div class="ln" style="width:80%"></div>
+      <div class="ln" style="width:88%"></div>
+      <div class="lrow"><div class="ln" style="width:20%"></div><div class="rd" style="width:62%"></div></div>
+      <div class="ln" style="width:70%"></div>
+      <div class="lrow"><div class="rd" style="width:38%"></div><div class="ln" style="width:48%"></div></div>
+      <div class="ln" style="width:94%"></div>
+      <div class="ln" style="width:60%"></div>
+      <div class="lrow"><div class="ln" style="width:44%"></div><div class="rd" style="width:44%"></div></div>
+      <div class="ln" style="width:84%"></div>
+      <div class="ln" style="width:52%"></div>
+      <span class="stamp" style="--r:-8deg;--d:.3s;top:96px;left:340px;color:var(--leak-dk)">FERPA</span>
+      <span class="stamp" style="--r:6deg;--d:.6s;top:216px;left:46px;color:var(--safe)">HIPAA</span>
+      <span class="stamp" style="--r:-4deg;--d:.9s;top:320px;left:380px;color:var(--ink)">CJIS</span>
+      <span class="stamp" style="--r:9deg;--d:1.2s;top:430px;left:110px;color:var(--leak-dk)">PII</span>
+      <span class="stamp" style="--r:-6deg;--d:1.5s;top:510px;left:300px;color:var(--safe)">PRIVILEGED</span>
+    </div>
+  </div>
+</section>
+
+<!-- 5a: federal -->
+<section class="slide dark tight" data-label="Washington" data-notes="Start with the federal government, because this is not a partisan or fringe idea. The White House's AI Action Plan, July 2025, says open models matter precisely because governments have sensitive data they cannot send to closed model vendors. Federal agencies act on that. The Army hosts open models from Meta, Google and Mistral on its own networks, including the classified one, for about 75,000 users. Argonne National Laboratory runs open models on its own supercomputers for researchers across the Energy Department labs. NASA hosts its chatbot on its own supercomputer rather than in the cloud. And Homeland Security cut off commercial tools like ChatGPT and Claude in 2025 and moved about 20,000 staff to its in-house system; note that DHSChat itself calls commercial models, so it is an example of government control, not of open models. Among states, the closest is New Jersey, whose employee assistant runs on state infrastructure for 20,000-plus staff but calls a commercial model; we found no state running open models on hardware it owns.">
+  <div class="fedq">
+    <p class="kicker">America's AI Action Plan · The White House, July 2025</p>
+    <p class="bigq">“…many businesses and governments have <span>sensitive data that they cannot send to closed model vendors.</span>”</p>
+  </div>
+  <div class="fedgrid">
+    <div class="fg"><p class="fgw">U.S. Army · CamoGPT</p><p>Hosts open models from Meta, Google and Mistral on its own networks, including the classified one. 75,000 users.</p></div>
+    <div class="fg"><p class="fgw">Dept. of Energy · Argonne</p><p>Runs Llama, Gemma and gpt-oss on lab-owned supercomputers for researchers across the national labs (2026).</p></div>
+    <div class="fg"><p class="fgw">NASA · NASA-GPT</p><p>Hosted on NASA's own supercomputer, “non-cloud, internally hosted” (2024).</p></div>
+    <div class="fg"><p class="fgw">Homeland Security</p><p>Cut off ChatGPT and Claude in 2025 and moved about 20,000 staff to its in-house DHSChat.</p></div>
+  </div>
+  <p class="peer"><b>No U.S. state yet</b> runs open models on hardware it owns. South Carolina could be first.</p>
+  <p class="small">Sources: whitehouse.gov (AI Action Plan, Jul 2025); army.mil (Aug 2025); Argonne ALCF Inference Service (May 2026); NASA Advanced Supercomputing, SC24 (Nov 2024); FedScoop (DHS, 2025). Accessed 6 Oct 2026.</p>
+</section>
+
+<!-- 6a: usage -->
+<section class="slide dark tight" data-label="Usage" data-notes="This is the part of the cost story people miss. AI use is not growing steadily; it is exploding. Google reports the tokens, the units AI reads and writes, that its products process each month: under ten trillion two years ago, over three quadrillion now, roughly 330 times more. Two things drive it: more people using AI, and each task using more tokens. A large study of real traffic found the average request grew about four times longer between 2023 and 2025, and reasoning models, which think before answering, can use up to twenty times more tokens for the same work. Fair caveat: part of Google's number reflects its own products doing more work per query. Anything billed per token grows with this curve.">
+  <h2 class="h2 one">AI usage is growing exponentially.</h2>
+  <div class="usewrap">
+    <svg class="usechart" viewBox="0 0 900 480" role="img" aria-label="Line chart of tokens Google processes per month: 9.7 trillion in May 2024, 480 trillion in May 2025, 980 trillion in July 2025, 1.3 quadrillion in October 2025, 3.2 quadrillion in May 2026.">
+      <line class="grid-d" x1="100" y1="86" x2="880" y2="86"/><line class="grid-d" x1="100" y1="197" x2="880" y2="197"/><line class="grid-d" x1="100" y1="309" x2="880" y2="309"/><line class="axis" x1="100" y1="420" x2="880" y2="420"/>
+      <text class="ct" x="88" y="92" text-anchor="end">3Q</text><text class="ct" x="88" y="203" text-anchor="end">2Q</text><text class="ct" x="88" y="315" text-anchor="end">1Q</text><text class="ct" x="88" y="426" text-anchor="end">0</text>
+      <text class="ct" x="100" y="450" text-anchor="middle">May 2024</text><text class="ct" x="480" y="450" text-anchor="middle">May 2025</text><text class="ct" x="890" y="450" text-anchor="end">May 2026</text>
+      <text class="ct ax" transform="translate(22 250) rotate(-90)" text-anchor="middle">Tokens per month · Q = quadrillion</text>
+      <polyline class="gline" points="100,419 480,367 543,311 638,275 860,63"/>
+      <g><circle class="gdot" cx="100" cy="419" r="9"/><circle class="gdot" cx="480" cy="367" r="9"/><circle class="gdot" cx="543" cy="311" r="9"/><circle class="gdot" cx="638" cy="275" r="9"/><circle class="gdot" cx="860" cy="63" r="9"/></g>
+      <text class="ct w" x="100" y="399" text-anchor="start">9.7 trillion</text><text class="ct w" x="480" y="345" text-anchor="middle">480 trillion</text><text class="ct w" x="530" y="289" text-anchor="end">980 trillion</text><text class="ct w" x="625" y="253" text-anchor="end">1.3 quadrillion</text><text class="ct w" x="845" y="69" text-anchor="end">3.2 quadrillion</text>
+    </svg>
+    <div class="usefacts">
+      <div><p class="ufn">330×</p><p class="uft">more tokens per month at Google in two years</p></div>
+      <div><p class="ufn">~4×</p><p class="uft">longer average AI request, 2023 → 2025</p></div>
+      <div><p class="ufn">up to 20×</p><p class="uft">more tokens when a model “reasons” before answering</p></div>
+    </div>
+  </div>
+  <p class="small">Sources: Google CEO Sundar Pichai, Q2 and Q3 2025 earnings remarks and I/O 2026 keynote (blog.google); OpenRouter / a16z, “State of AI” 100-trillion-token study (Dec 2025); Artificial Analysis (Apr 2025). Accessed 6 Oct 2026.</p>
+</section>
+
+<!-- 6 -->
+<section class="slide dark tight" data-label="Cost" data-notes="Here is what a year costs at three levels of use, using the vendors' published per-token prices. At light use, around 20 staff, renting is as cheap or cheaper than owning; be upfront about that. At office-wide use, around 200 staff, Claude Opus 5.5 would run about 60 thousand dollars a year and GPT-6.1 Sol about 30 thousand, against about 6 thousand for a GPU server we own. At heavy use, or with AI agents that read and write far more, the rented bill reaches hundreds of thousands while the owned server costs the same, though at that level one GPU is at its limit and you would add hardware. The staff counts assume about 35 requests per person per workday; the hardware cost is an estimate.">
+  <h2 class="h2 one">The more you use it, the more owning pays.</h2>
+  <div class="ccols"><div class="cc"><p class="cct">Light use</p><p class="cctok">100 million tokens / month</p><p class="ccs">≈ 20 staff</p><div class="cr"><p class="crn">Claude Opus 5.5</p><div class="crt"><div class="crb c" style="width:99.7%"></div></div><p class="crv c">$6K</p></div><div class="cr"><p class="crn">GPT-6.1 Sol</p><div class="crt"><div class="crb c2" style="width:49.8%"></div></div><p class="crv c2">$3K</p></div><div class="cr"><p class="crn">Our own GPU</p><div class="crt"><div class="crb o" style="width:100.0%"></div></div><p class="crv o">$6K</p></div></div><div class="cc"><p class="cct">Office-wide</p><p class="cctok">1 billion tokens / month</p><p class="ccs">≈ 200 staff</p><div class="cr"><p class="crn">Claude Opus 5.5</p><div class="crt"><div class="crb c" style="width:100.0%"></div></div><p class="crv c">$60K</p></div><div class="cr"><p class="crn">GPT-6.1 Sol</p><div class="crt"><div class="crb c2" style="width:50.0%"></div></div><p class="crv c2">$30K</p></div><div class="cr"><p class="crn">Our own GPU</p><div class="crt"><div class="crb o" style="width:10.0%"></div></div><p class="crv o">$6K</p></div></div><div class="cc"><p class="cct">Heavy or agents</p><p class="cctok">10 billion tokens / month</p><p class="ccs">≈ 2,000 staff, or AI agents</p><div class="cr"><p class="crn">Claude Opus 5.5</p><div class="crt"><div class="crb c" style="width:100.0%"></div></div><p class="crv c">$600K</p></div><div class="cr"><p class="crn">GPT-6.1 Sol</p><div class="crt"><div class="crb c2" style="width:50.0%"></div></div><p class="crv c2">$300K</p></div><div class="cr"><p class="crn">Our own GPU (near its limit)</p><div class="crt"><div class="crb o" style="width:1.2%"></div></div><p class="crv o">$6K</p></div></div></div>
+  <p class="small">Cost per year. Cloud: published list prices (Claude Opus 5.5 $4 in / $20 out; GPT-6.1 Sol $2 / $10 per million tokens), at the average real-world request of ~6,000 tokens in, 400 out (OpenRouter study, Dec 2025). Own GPU (estimate): ≈$20K workstation over 4 years plus full-time power at SC's 11.61¢/kWh (EIA). Staff counts assume ~35 requests per person per workday.</p>
+</section>
+
+<!-- 7 -->
+<section class="slide light tight" data-label="Vendor independence" data-notes="These are all real, dated, and from the vendors' own pages or court coverage. Models get retired on the vendor's schedule, sometimes about a year after release, which breaks any workflow built on them. Data policies change: a court order made OpenAI keep logs it would otherwise have deleted, and Anthropic changed its consumer data terms. And services go down: Claude's own status page shows 22 major or critical incidents in about ten weeks. None of this is unusual or a knock on any one company; it is what renting looks like. A model file on our own server doesn't change until we decide to change it.">
+  <h2 class="h2 one">Their roadmap, not ours.</h2>
+  <div class="vend">
+    <div class="evs">
+      <div class="ev"><p class="evd">Jul 2025</p><p class="evt retired">Retired</p><p class="evx">OpenAI shut down GPT-4.5 Preview in its API, months after launch.</p></div>
+      <div class="ev"><p class="evd">May–Oct 2025</p><p class="evt policy">Policy</p><p class="evx">A court ordered OpenAI to keep user chat logs it would otherwise have deleted.</p></div>
+      <div class="ev"><p class="evd">Aug 2025</p><p class="evt policy">Policy</p><p class="evx">Anthropic asked consumer users to opt out, or their chats would train models and be kept for 5 years.</p></div>
+      <div class="ev"><p class="evd">Jun 2026</p><p class="evt retired">Retired</p><p class="evx">Anthropic retired Claude Opus 4 and Sonnet 4, about 13 months after release.</p></div>
+      <div class="ev"><p class="evd">Jun 2026</p><p class="evt retired">Retired</p><p class="evx">Google shut down all Gemini 2.0 Flash models in its API.</p></div>
+      <div class="ev"><p class="evd">Jul–Oct 2026</p><p class="evt outage">Outage</p><p class="evx">Claude's status page logged 22 major or critical incidents in about 10 weeks.</p></div>
+      <div class="ev"><p class="evd">Oct 2026</p><p class="evt retired">Retired</p><p class="evx">OpenAI set shutdown dates for gpt-5.1 and other models.</p></div>
+    </div>
+    <div class="ours">
+      <p class="kicker">A model on our own server</p>
+      <ul class="oursl"><li>Same version, same behavior, until we change it</li><li>No shutdown date</li><li>No price change</li><li>Keeps working if the internet doesn't</li></ul>
+    </div>
+  </div>
+  <p class="small">Sources: OpenAI, Anthropic and Google deprecation pages; anthropic.com/news (Aug 28, 2025); news coverage of NYT v. OpenAI; status.claude.com. Accessed 6 Oct 2026. The opt-out applied to consumer plans only, not business or government accounts.</p>
+</section>
+
+<!-- 8b: gap over time -->
+<section class="slide light tight" data-label="The gap" data-notes="This is independent data from Epoch AI, a research group that tracks AI progress. Each line is the best model available on that date: the best open-weight model you can download and run yourself, against the best model you can only rent through an API. In mid-2023 the gap was 16.7 points on their capability index; it is now 7.7. Epoch's estimate is that open models trail closed ones by roughly four months. To be fair, the gap has not closed completely, and it widened slightly in 2026. The point is that whatever the frontier can do today, a model we can own will do in a matter of months.">
+  <h2 class="h2 one">Open models: about 4 months behind.</h2>
+  <svg class="chart" style="height:440px" viewBox="0 0 1408 500" role="img" aria-label="Line chart. Vertical axis: ability score (Epoch Capabilities Index), higher is better. Horizontal axis: date, mid-2023 to May 2026. Best closed model rises from 126 to 159; best open model rises from 109 to 152. The gap narrows from 16.7 points to 7.7.">
+    <text class="lt ax" transform="translate(28 240) rotate(-90)" text-anchor="middle">Ability score (higher = more capable)</text>
+    <text class="lt ax" x="610" y="492" text-anchor="middle">Date the best model of each kind was available</text>
+    <line class="grid" x1="120" y1="60" x2="1100" y2="60"/><line class="grid" x1="120" y1="180" x2="1100" y2="180"/><line class="grid" x1="120" y1="300" x2="1100" y2="300"/><line class="axis-l" x1="120" y1="420" x2="1100" y2="420"/>
+    <text class="lt" x="104" y="66" text-anchor="end">160</text><text class="lt" x="104" y="186" text-anchor="end">140</text><text class="lt" x="104" y="306" text-anchor="end">120</text><text class="lt" x="104" y="426" text-anchor="end">100</text>
+    <text class="lt" x="290" y="456" text-anchor="middle">2024</text><text class="lt" x="627" y="456" text-anchor="middle">2025</text><text class="lt" x="962" y="456" text-anchor="middle">2026</text>
+    <polygon class="gap-area" points="120,264 289,264 456,240 626,163 792,136 961,95 1044,74 1100,64 1100,110 1044,131 961,141 792,167 626,221 456,266 289,314 120,364"/>
+    <polyline class="cl-l draw" pathLength="1" stroke-dasharray="1" points="120,264 289,264 456,240 626,163 792,136 961,95 1044,74 1100,64"/>
+    <polyline class="ll-l draw" pathLength="1" stroke-dasharray="1" style="--d:.2s" points="120,364 289,314 456,266 626,221 792,167 961,141 1044,131 1100,110"/>
+    <circle class="pt-c" cx="1100" cy="64" r="9"/><circle class="pt-o" cx="1100" cy="110" r="9"/>
+    <text class="lt c" x="1120" y="70">Best closed · 159.3</text>
+    <text class="lt o" x="1120" y="116">Best open · 151.6</text>
+    <text class="lt k" x="1120" y="168">Gap: 7.7 points</text>
+    <text class="lt k" x="1120" y="196">(about 4 months)</text>
+    <text class="lt k" x="136" y="238">Gap: 16.7 points</text>
+  </svg>
+  <p class="small">Source: Epoch AI, Epoch Capabilities Index; best open-weight vs. best API-only model by date, data through May 2026 (epoch.ai/data-insights/open-closed-eci-gap).</p>
+</section>
+
+<!-- 8c: price vs capability -->
+<section class="slide dark tight" data-label="Price vs. capability" data-notes="Independent scores from Artificial Analysis, which runs the same test suite on every model, plotted against each model's list price for output. Blue dots are open-weight models; orange are closed. The best open model, MiMo-V2.6-Pro, scores about 80 percent of the top closed model at about 4 percent of the output price, and those open-model prices are what cloud hosts charge; on our own hardware there is no per-token fee at all. Be candid about the bottom-left dot: gpt-oss-120b, the model our server runs today, was released in August 2025 and now scores far lower on this index. Newer open models such as Qwen3.8 27B score about three times higher and are small enough to evaluate on the same GPU. Upgrading the model is part of the plan.">
+  <div class="titlerow"><h2 class="h2 one">80% of the score, 4% of the price.</h2><div class="legend"><p><i class="lg c"></i>Rent-only</p><p><i class="lg o"></i>Open: we can own it</p></div></div>
+  <svg class="chart" style="height:460px" viewBox="0 0 1408 550" role="img" aria-label="Scatter plot of Artificial Analysis Intelligence Index against output price per million tokens, log scale. Closed models score 52 to 58 at 10 to 50 dollars. Open models: MiMo-V2.6-Pro 46.3 at 0.87 dollars, GLM-5.3 44.8 at 4.40, Kimi K3 43.6 at 15, DeepSeek V4.1 Flash 39.5 at 1.20, Qwen3.8 27B 33.7 at 3, gpt-oss-120b 11.6 at 0.60.">
+    <line class="grid-d" x1="120" y1="40" x2="1360" y2="40"/><line class="grid-d" x1="120" y1="183" x2="1360" y2="183"/><line class="grid-d" x1="120" y1="327" x2="1360" y2="327"/><line class="axis" x1="120" y1="470" x2="1360" y2="470"/>
+    <text class="ct" x="104" y="46" text-anchor="end">60</text><text class="ct" x="104" y="189" text-anchor="end">40</text><text class="ct" x="104" y="333" text-anchor="end">20</text><text class="ct" x="104" y="476" text-anchor="end">0</text>
+    <line class="grid-d" x1="377" y1="40" x2="377" y2="470"/><line class="grid-d" x1="612" y1="40" x2="612" y2="470"/><line class="grid-d" x1="869" y1="40" x2="869" y2="470"/><line class="grid-d" x1="1103" y1="40" x2="1103" y2="470"/>
+    <text class="ct ax" transform="translate(30 255) rotate(-90)" text-anchor="middle">Ability score</text>
+    <text class="ct ax" x="740" y="542" text-anchor="middle">Cloud price per million tokens</text>
+    <text class="ct" x="120" y="504" text-anchor="middle">$0.30</text><text class="ct" x="377" y="504" text-anchor="middle">$1</text><text class="ct" x="612" y="504" text-anchor="middle">$3</text><text class="ct" x="869" y="504" text-anchor="middle">$10</text><text class="ct" x="1103" y="504" text-anchor="middle">$30</text><text class="ct" x="1360" y="504" text-anchor="middle">$100</text>
+    <g>
+    <circle class="sc-c" cx="1016" cy="57" r="11"/><circle class="sc-c" cx="869" cy="69" r="11"/><circle class="sc-c" cx="1212" cy="92" r="11"/><circle class="sc-c" cx="869" cy="93" r="11"/><circle class="sc-c" cx="869" cy="99" r="11"/>
+    <circle class="sc-o" cx="347" cy="138" r="11"/><circle class="sc-o" cx="693" cy="149" r="11"/><circle class="sc-o" cx="955" cy="158" r="11"/><circle class="sc-o" cx="416" cy="187" r="11"/><circle class="sc-o" cx="612" cy="228" r="11"/><circle class="sc-o" cx="266" cy="387" r="11"/>
+    </g>
+    <text class="sl c" x="1032" y="56">Claude Opus 5.5</text>
+    <text class="sl c" x="853" y="70" text-anchor="end">Claude Sonnet 5.5</text>
+    <text class="sl c" x="1228" y="98">GPT-6 Astra</text>
+    <text class="sl c" x="853" y="100" text-anchor="end">Gemini 4 Argon</text>
+    <text class="sl c" x="885" y="122">GPT-6.1 Sol</text>
+    <text class="sl o" x="363" y="132">MiMo-V2.6-Pro</text>
+    <text class="sl o" x="709" y="154">GLM-5.3</text>
+    <text class="sl o" x="971" y="166">Kimi K3</text>
+    <text class="sl o" x="432" y="193">DeepSeek V4.1 Flash</text>
+    <text class="sl o" x="628" y="234">Qwen3.8 27B</text>
+    <text class="sl o" x="282" y="393">gpt-oss-120b</text>
+  </svg>
+  <p class="small">Source: Artificial Analysis Intelligence Index v4.3 and list output prices, retrieved 6 Oct 2026. Open-model prices shown are cloud-hosted rates.</p>
+</section>
+
+<!-- 8c2: what we could run -->
+<section class="slide dark tight" data-label="Ability vs. cost" data-notes="Ability on the left, what it takes to run each model on the right. The rent-only frontier models score highest and cost 20 to 30 dollars per user per month or a per-use fee. The strongest open models reach about 80 percent of the top score and can be owned outright, but they are large: from roughly 150 thousand dollars for an eight-GPU server for MiMo up to half a million dollars or more for Kimi K3. The models that fit the single GPU we already have cost nothing extra; adding Qwen3.8 27B would nearly triple our current ability score. Hardware figures are estimates from published GPU and server prices, not vendor quotes.">
+  <h2 class="h2 one">Ability vs. what it takes to run it.</h2>
+  <div class="bars">
+    <p class="bgrp">Rent only</p>
+    <div class="brow wide"><p class="bn">Claude Opus 5.5</p><div class="btrack nl"><div class="bar c" style="width:96.0%;--d:0.10s"></div></div><p class="bv">57.6</p><p class="bt c">$20–30 per user/month, or pay per use</p></div>
+    <div class="brow wide"><p class="bn">GPT-6 Astra</p><div class="btrack nl"><div class="bar c" style="width:87.8%;--d:0.16s"></div></div><p class="bv">52.7</p><p class="bt c">$20–30 per user/month, or pay per use</p></div>
+    <div class="brow wide"><p class="bn">Gemini 4 Argon</p><div class="btrack nl"><div class="bar c" style="width:87.7%;--d:0.22s"></div></div><p class="bv">52.6</p><p class="bt c">$20–30 per user/month, or pay per use</p></div>
+    <p class="bgrp">Open: own it with a bigger server</p>
+    <div class="brow wide"><p class="bn">MiMo-V2.6-Pro</p><div class="btrack nl"><div class="bar b" style="width:77.2%;--d:0.28s"></div></div><p class="bv">46.3</p><p class="bt b">8× RTX PRO 6000 · ≈ $150–180K</p></div>
+    <div class="brow wide"><p class="bn">GLM-5.3</p><div class="btrack nl"><div class="bar b" style="width:74.7%;--d:0.34s"></div></div><p class="bv">44.8</p><p class="bt b">8× H200 · ≈ $370K</p></div>
+    <div class="brow wide"><p class="bn">Kimi K3</p><div class="btrack nl"><div class="bar b" style="width:72.7%;--d:0.40s"></div></div><p class="bv">43.6</p><p class="bt b">8-GPU B300-class · $500K+</p></div>
+    <p class="bgrp">Open: fits the GPU we already own</p>
+    <div class="brow wide"><p class="bn">Qwen3.8 27B</p><div class="btrack nl"><div class="bar a" style="width:56.2%;--d:0.46s"></div></div><p class="bv">33.7</p><p class="bt a">1 GPU · free to add</p></div>
+    <div class="brow wide"><p class="bn">Qwen3.5 122B</p><div class="btrack nl"><div class="bar s" style="width:26.0%;--d:0.52s"></div></div><p class="bv">15.6</p><p class="bt s">1 GPU · on our server</p></div>
+    <div class="brow wide"><p class="bn">gpt-oss-120b</p><div class="btrack nl"><div class="bar s" style="width:19.3%;--d:0.58s"></div></div><p class="bv">11.6</p><p class="bt s">1 GPU · on our server</p></div>
+  </div>
+  <p class="small">Ability: Artificial Analysis Intelligence Index v4.3 (0–100), accessed 6 Oct 2026. Hardware: smallest standard 8-GPU server that holds each model's published weights (Hugging Face), priced from published estimates (Mercatus AI, Jul 2026; GPU street prices, Oct 2026). Estimates, not quotes.</p>
+</section>
+
+<!-- 8e: real work -->
+<section class="slide light tight" data-label="Real work" data-notes="This is the test closest to what state staff actually do. GDPval was built with industry professionals: 220 real work assignments from 44 occupations, where the model has to produce the actual deliverable, a memo, a spreadsheet, a slide deck. Artificial Analysis has judges compare two models' work side by side and turns the results into a rating. The striking part: the best open models, MiMo and GLM, produce work rated above Google's and OpenAI's current flagships, and only Anthropic's two models are clearly ahead. Our server's current models score low on this test; the newer Qwen3.8 27B, which fits our GPU, is a big step up. One caveat: the judges are themselves AI models.">
+  <div class="titlerow"><h2 class="h2 one">On real office work, open models hold their own.</h2></div>
+  <p class="sub">GDPval: 220 work assignments from 44 occupations (memos, spreadsheets, slides), graded side by side</p>
+  <div class="bars">
+    <div class="brow"><p class="bn">Claude Opus 5.5</p><div class="btrack nl"><div class="bar c" style="width:91.1%;--d:0.10s"></div></div><p class="bv">0.68</p><p class="bt c">rent only</p></div>
+    <div class="brow"><p class="bn">Claude Sonnet 5.5</p><div class="btrack nl"><div class="bar c" style="width:89.3%;--d:0.15s"></div></div><p class="bv">0.67</p><p class="bt c">rent only</p></div>
+    <div class="brow"><p class="bn">MiMo-V2.6-Pro</p><div class="btrack nl"><div class="bar b" style="width:79.1%;--d:0.20s"></div></div><p class="bv">0.59</p><p class="bt b">open · bigger server</p></div>
+    <div class="brow"><p class="bn">GLM-5.3</p><div class="btrack nl"><div class="bar b" style="width:76.8%;--d:0.25s"></div></div><p class="bv">0.58</p><p class="bt b">open · bigger server</p></div>
+    <div class="brow"><p class="bn">Gemini 4 Argon</p><div class="btrack nl"><div class="bar c" style="width:75.1%;--d:0.30s"></div></div><p class="bv">0.56</p><p class="bt c">rent only</p></div>
+    <div class="brow"><p class="bn">DeepSeek V4.1 Flash</p><div class="btrack nl"><div class="bar b" style="width:73.3%;--d:0.35s"></div></div><p class="bv">0.55</p><p class="bt b">open · bigger server</p></div>
+    <div class="brow"><p class="bn">GPT-6.1 Sol</p><div class="btrack nl"><div class="bar c" style="width:71.7%;--d:0.40s"></div></div><p class="bv">0.54</p><p class="bt c">rent only</p></div>
+    <div class="brow"><p class="bn">GPT-6 Astra</p><div class="btrack nl"><div class="bar c" style="width:69.5%;--d:0.45s"></div></div><p class="bv">0.52</p><p class="bt c">rent only</p></div>
+    <div class="brow"><p class="bn">Kimi K3</p><div class="btrack nl"><div class="bar b" style="width:69.1%;--d:0.50s"></div></div><p class="bv">0.52</p><p class="bt b">open · bigger server</p></div>
+    <div class="brow"><p class="bn">Qwen3.8 27B</p><div class="btrack nl"><div class="bar a" style="width:61.6%;--d:0.55s"></div></div><p class="bv">0.46</p><p class="bt a">open · fits our GPU</p></div>
+    <div class="brow"><p class="bn">Qwen3.5 122B</p><div class="btrack nl"><div class="bar s" style="width:21.1%;--d:0.60s"></div></div><p class="bv">0.16</p><p class="bt s">open · on our server</p></div>
+    <div class="brow"><p class="bn">gpt-oss-120b</p><div class="btrack nl"><div class="bar s" style="width:7.5%;--d:0.65s"></div></div><p class="bv">0.06</p><p class="bt s">open · on our server</p></div>
+  </div>
+  <p class="small">Source: Artificial Analysis, GDPval-AA (normalized rating, 0–1, higher = better work), accessed 6 Oct 2026. Built on OpenAI's GDPval task set; judged by a panel of AI models.</p>
+</section>
+
+<!-- 11 -->
+<section class="slide dark" data-label="The rule" data-notes="This doesn't have to be all-or-nothing. The rule is simple enough for anyone to follow: sensitive or non-public data goes to the local model, always. Public, routine work also goes local, because it costs nothing extra. Only public work that truly needs the strongest available model goes to an approved cloud service. Click a request to sort it, or press Sort again to replay.">
+  <h2 class="h2">The rule: sensitive stays local.</h2>
+  <div class="sorter">
+    <div>
+      <p class="col-label">Incoming requests</p>
+      <div class="inbox" id="inbox">
+        <button class="req" data-to="local"><b>Student IEP notes</b><span>sensitive · FERPA</span></button>
+        <button class="req" data-to="local"><b>Medicaid claim question</b><span>sensitive · HIPAA</span></button>
+        <button class="req" data-to="local"><b>Constituent casework letter</b><span>sensitive · personal details</span></button>
+        <button class="req" data-to="local"><b>Public meeting recap</b><span>public · routine</span></button>
+        <button class="req" data-to="local"><b>Draft bill language</b><span>non-public · pre-decisional</span></button>
+        <button class="req" data-to="cloud"><b>Hard proof on public data</b><span>public · needs top-tier reasoning</span></button>
+      </div>
+    </div>
+    <div class="lanes-col">
+      <div class="lane-box local"><h3>Local model <span>· the default</span></h3><div class="slots" id="laneLocal"></div></div>
+      <div class="lane-box cloud"><h3>Approved cloud <span>· public data, hardest tasks only</span></h3><div class="slots" id="laneCloud"></div></div>
+      <button class="replay" id="replay">Sort again</button>
+    </div>
+  </div>
+</section>
+
+<!-- 12 -->
+<section class="slide amber" data-label="Takeaways" data-notes="Three things to remember. Private: with a model on hardware we control, prompts and documents never go to an outside company. Close: the best open models are about four months behind the frontier, and they keep improving. Ours: no per-use fees, no surprise retirements, and the rules are ours to set. Then open the floor for questions.">
+  <p class="kicker">What to remember</p>
+  <div class="steps">
+    <div class="step"><p class="w rise" style="--d:.1s">Private.</p><p>Prompts and documents never leave hardware we control.</p></div>
+    <div class="step"><p class="w rise" style="--d:.3s">Close.</p><p>The best open models trail the frontier by about four months.</p></div>
+    <div class="step" style="border-bottom:3px solid var(--ink)"><p class="w rise" style="--d:.5s">Ours.</p><p>No per-use fees, no surprise retirements, our rules.</p></div>
+  </div>
+  <p class="close-line">Questions? · AI Institute of South Carolina</p>
+</section>
+
+</div>
+
+<div id="bar">
+  <p class="hint">← → or click to advance · N notes · F full screen</p>
+  <div class="btns">
+    <button id="prev" aria-label="Previous slide">←</button>
+    <span id="count" aria-live="polite">1 / 12</span>
+    <button id="next" aria-label="Next slide">→</button>
+    <button id="notesBtn" aria-pressed="false">Notes</button>
+    <button id="fsBtn">Full screen</button>
+  </div>
+</div>
+<aside id="notes" hidden><p class="nl">Speaker notes</p><p id="notesText"></p></aside>
+
+<script>
+(function(){
+  const stage=document.getElementById('stage');
+  const slides=[...stage.querySelectorAll('.slide')];
+  const N=slides.length;
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const css=getComputedStyle(document.documentElement);
+  const T=n=>css.getPropertyValue('--'+n).trim();
+  const C={signal:T('signal'),leak:T('leak-lt'),mist:T('mist'),ink:T('ink'),paper:T('paper')};
+  let cur=0,S=1;
+
+  slides.forEach((s,i)=>{
+    const st=document.createElement('div');st.className='strip';
+    st.innerHTML='<span>In-house // Local AI briefing</span><span>'+s.dataset.label+'</span><span>'+String(i+1).padStart(2,'0')+' / '+N+'</span>';
+    s.prepend(st);
+  });
+
+  /* ---------- canvas effects ---------- */
+  const fxs=[...stage.querySelectorAll('canvas.fx')].map(c=>({c,g:c.getContext('2d'),kind:c.dataset.fx,slide:c.closest('.slide'),st:null}));
+  function sizeCanvases(){
+    const d=Math.min(window.devicePixelRatio||1,2);
+    fxs.forEach(f=>{f.c.width=Math.max(1,Math.round(1600*S*d));f.c.height=Math.max(1,Math.round(900*S*d));f.g.setTransform(S*d,0,0,S*d,0,0);draw(f,0);});
+  }
+  const rgba=(hex,a)=>{const n=parseInt(hex.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`};
+
+  const R={x:1110,y:180,w:390,h:560};
+  function drawContain(f,dt){
+    const g=f.g;
+    if(!f.st){f.st=[];for(let i=0;i<64;i++)f.st.push({x:R.x+12+Math.random()*(R.w-24),y:R.y+12+Math.random()*(R.h-24),vx:(Math.random()-.5)*70,vy:(Math.random()-.5)*70});}
+    const d=f.st;g.clearRect(0,0,1600,900);
+    for(const p of d){
+      p.x+=p.vx*dt;p.y+=p.vy*dt;
+      if(p.x<R.x+8||p.x>R.x+R.w-8){p.vx*=-1;p.x=Math.max(R.x+8,Math.min(R.x+R.w-8,p.x));}
+      if(p.y<R.y+8||p.y>R.y+R.h-8){p.vy*=-1;p.y=Math.max(R.y+8,Math.min(R.y+R.h-8,p.y));}
+    }
+    g.lineWidth=1;
+    for(let i=0;i<d.length;i++)for(let j=i+1;j<d.length;j++){
+      const dx=d[i].x-d[j].x,dy=d[i].y-d[j].y,q=dx*dx+dy*dy;
+      if(q<5000){g.strokeStyle=rgba(C.signal,.35*(1-q/5000));g.beginPath();g.moveTo(d[i].x,d[i].y);g.lineTo(d[j].x,d[j].y);g.stroke();}
+    }
+    g.fillStyle=C.signal;for(const p of d)g.fillRect(p.x-3,p.y-3,6,6);
+    g.setLineDash([10,8]);g.strokeStyle=C.signal;g.lineWidth=2;g.strokeRect(R.x,R.y,R.w,R.h);g.setLineDash([]);
+    g.font='600 15px "JetBrains Mono", monospace';g.fillStyle=C.signal;g.fillText('OUR NETWORK',R.x,R.y-16);
+  }
+
+  const B={x:110,y:440,w:340,h:360},EX={x:450,y:740},CP={x:900,y:360},P1={x:1250,y:610};
+  const cloud=[[1270,630,62],[1350,580,86],[1440,630,62],[1360,670,70]];
+  function bez(t){const u=1-t;return{x:u*u*EX.x+2*u*t*CP.x+t*t*P1.x,y:u*u*EX.y+2*u*t*CP.y+t*t*P1.y}}
+  function spawn(t){return{sx:B.x+30+Math.random()*(B.w-60),sy:B.y+40+Math.random()*(B.h-80),t:t||0,v:.22+Math.random()*.1}}
+  function drawLeak(f,dt){
+    const g=f.g;
+    if(!f.st){f.st={dots:[],acc:0};for(let i=0;i<26;i++)f.st.dots.push(spawn(Math.random()));}
+    const s=f.st;s.acc+=dt;
+    while(s.acc>.14){s.acc-=.14;s.dots.push(spawn(0));}
+    g.clearRect(0,0,1600,900);
+    // building
+    g.strokeStyle=C.mist;g.lineWidth=2;g.strokeRect(B.x,B.y,B.w,B.h);
+    g.fillStyle=rgba(C.mist,.18);
+    for(let r=0;r<5;r++)for(let c=0;c<4;c++)g.fillRect(B.x+34+c*74,B.y+34+r*62,36,28);
+    // path
+    g.setLineDash([4,10]);g.strokeStyle=rgba(C.mist,.45);g.beginPath();g.moveTo(EX.x,EX.y);g.quadraticCurveTo(CP.x,CP.y,P1.x,P1.y);g.stroke();g.setLineDash([]);
+    // cloud
+    g.fillStyle=C.leak;for(const[x,y,r]of cloud){g.beginPath();g.arc(x,y,r+3,0,7);g.fill();}
+    g.fillStyle=C.ink;for(const[x,y,r]of cloud){g.beginPath();g.arc(x,y,r,0,7);g.fill();}
+    g.fillStyle=rgba(C.leak,.12);for(const[x,y,r]of cloud){g.beginPath();g.arc(x,y,r,0,7);g.fill();}
+    // dots
+    const keep=[];
+    for(const p of s.dots){
+      p.t+=p.v*dt;if(p.t>=1)continue;keep.push(p);
+      let x,y,col;
+      if(p.t<.3){const k=p.t/.3;x=p.sx+(EX.x-p.sx)*k;y=p.sy+(EX.y-p.sy)*k;col=C.signal;}
+      else{const q=bez((p.t-.3)/.7);x=q.x;y=q.y;col=C.leak;}
+      g.fillStyle=col;g.fillRect(x-4,y-4,8,8);
+    }
+    s.dots=keep;
+    g.font='600 15px "JetBrains Mono", monospace';g.fillStyle=C.mist;
+    g.fillText('OUR BUILDING',B.x,B.y+B.h+30);g.fillText('VENDOR CLOUD',1280,770);
+  }
+  function draw(f,dt){if(f.kind==='contain')drawContain(f,dt);else drawLeak(f,dt);}
+
+  let last=performance.now();
+  function frame(now){
+    const dt=Math.min(.05,(now-last)/1000);last=now;
+    fxs.forEach(f=>{if(f.slide===slides[cur])draw(f,dt)});
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------- typewriter ---------- */
+  const ans=document.getElementById('answer');
+  const ANSWER='1. Finance sends the revised budget to the committee by Friday.\n2. IT sets up accounts for the pilot group by next Wednesday.\n3. The policy office drafts data-handling guidance for the pilot.';
+  let twTimer=null;
+  function typeAnswer(){
+    clearInterval(twTimer);
+    if(reduce){ans.textContent=ANSWER;return;}
+    ans.textContent='';let i=0;
+    twTimer=setInterval(()=>{i+=2;ans.textContent=ANSWER.slice(0,i);if(i>=ANSWER.length)clearInterval(twTimer);},28);
+  }
+
+  /* ---------- sorter ---------- */
+  const inbox=document.getElementById('inbox'),laneL=document.getElementById('laneLocal'),laneC=document.getElementById('laneCloud');
+  const reqs=[...inbox.querySelectorAll('.req')];
+  let sortTimers=[];
+  function moveReq(c,animate){
+    if(c.parentElement!==inbox)return;
+    const a=c.getBoundingClientRect();
+    (c.dataset.to==='cloud'?laneC:laneL).appendChild(c);
+    if(!animate||reduce)return;
+    const b=c.getBoundingClientRect();
+    c.style.transition='none';c.style.transform=`translate(${(a.left-b.left)/S}px,${(a.top-b.top)/S}px)`;
+    c.getBoundingClientRect();
+    c.style.transition='transform .7s cubic-bezier(.2,.8,.2,1)';c.style.transform='';
+  }
+  function resetSort(){sortTimers.forEach(clearTimeout);sortTimers=[];reqs.forEach(c=>{c.style.transition='none';c.style.transform='';inbox.appendChild(c);});}
+  function runSort(){
+    resetSort();
+    if(reduce){reqs.forEach(c=>moveReq(c,false));return;}
+    reqs.forEach((c,i)=>sortTimers.push(setTimeout(()=>moveReq(c,true),700+i*650)));
+  }
+  reqs.forEach(c=>c.addEventListener('click',e=>{e.stopPropagation();moveReq(c,true);}));
+  document.getElementById('replay').addEventListener('click',e=>{e.stopPropagation();runSort();});
+
+  /* ---------- cost slider ---------- */
+  const rng=document.getElementById('staffRange');
+  if(rng){
+    const fmt=n=>'$'+n.toLocaleString('en-US');
+    const upd=()=>{const n=+rng.value;document.getElementById('staffOut').textContent=n;document.getElementById('c20').textContent=fmt(n*240);document.getElementById('c30').textContent=fmt(n*360);const x=110+n*1.7;const m=document.getElementById('costMarker');m.setAttribute('x1',x);m.setAttribute('x2',x);};
+    rng.addEventListener('input',upd);['click','keydown','touchstart','touchend'].forEach(ev=>rng.addEventListener(ev,e=>e.stopPropagation()));upd();
+  }
+
+  /* ---------- navigation ---------- */
+  const count=document.getElementById('count'),notes=document.getElementById('notes'),notesText=document.getElementById('notesText'),notesBtn=document.getElementById('notesBtn');
+  function enter(s){
+    if(s.contains(ans))typeAnswer();
+    if(s.contains(inbox))runSort();
+    fxs.forEach(f=>{if(f.slide===s)draw(f,0)});
+  }
+  function leave(s){
+    if(s.contains(ans))clearInterval(twTimer);
+    if(s.contains(inbox)){sortTimers.forEach(clearTimeout);sortTimers=[];}
+  }
+  function go(i,force){
+    i=Math.max(0,Math.min(N-1,i));
+    if(i===cur&&!force)return;
+    const old=slides[cur];leave(old);old.classList.remove('active','play');
+    cur=i;const s=slides[cur];
+    s.classList.add('active');void s.offsetWidth;s.classList.add('play');
+    enter(s);
+    count.textContent=(cur+1)+' / '+N;
+    notesText.textContent=s.dataset.notes||'';
+    try{history.replaceState(null,'','#s'+(cur+1));}catch(e){}
+  }
+  const next=()=>go(cur+1),prev=()=>go(cur-1);
+  document.getElementById('next').addEventListener('click',next);
+  document.getElementById('prev').addEventListener('click',prev);
+  function toggleNotes(){notes.hidden=!notes.hidden;notesBtn.setAttribute('aria-pressed',String(!notes.hidden));}
+  notesBtn.addEventListener('click',toggleNotes);
+  function toggleFs(){
+    try{
+      if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
+      else if(document.documentElement.requestFullscreen)document.documentElement.requestFullscreen().catch(()=>{});
+    }catch(e){}
+  }
+  document.getElementById('fsBtn').addEventListener('click',toggleFs);
+  addEventListener('keydown',e=>{
+    if(e.metaKey||e.ctrlKey||e.altKey)return;
+    const k=e.key;
+    if(['ArrowRight','PageDown',' '].includes(k)){e.preventDefault();next();}
+    else if(['ArrowLeft','PageUp'].includes(k)){e.preventDefault();prev();}
+    else if(k==='Home')go(0);else if(k==='End')go(N-1);
+    else if(k==='n'||k==='N')toggleNotes();
+    else if(k==='f'||k==='F')toggleFs();
+  });
+  stage.addEventListener('click',e=>{if(e.target.closest('button,a,input,label'))return;next();});
+  let tx=null;
+  stage.addEventListener('touchstart',e=>{tx=e.touches[0].clientX},{passive:true});
+  stage.addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx;tx=null;if(Math.abs(dx)>50){dx<0?next():prev();}},{passive:true});
+
+  function fit(){
+    const bar=56,w=innerWidth-32,h=innerHeight-32-bar;
+    S=Math.max(.05,Math.min(w/1600,h/900));
+    const x=(innerWidth-1600*S)/2,y=16+(h-900*S)/2;
+    stage.style.transform=`translate(${x}px,${y}px) scale(${S})`;
+    sizeCanvases();
+  }
+  addEventListener('resize',fit);
+
+  const m=/^#s(\d+)$/.exec(location.hash);
+  const start=m?Math.max(0,Math.min(N-1,parseInt(m[1],10)-1)):0;
+  fit();
+  cur=start;go(start,true);
+  if(!reduce)requestAnimationFrame(frame);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>fxs.forEach(f=>draw(f,0)));
+})();
+</script>
