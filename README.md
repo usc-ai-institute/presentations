@@ -4,7 +4,7 @@ Talks and briefings from the AI Institute of South Carolina.
 
 | Folder | Talk | Date |
 |---|---|---|
-| [local-llms-briefing](https://usc-ai-institute.github.io/presentations/local-llms-briefing/) | *Keep It in the Building*: running AI models on our own hardware (privacy, cost, vendor independence, how open models compare) | Oct 2026 |
+| [local-llms](https://usc-ai-institute.github.io/presentations/local-llms/) | *Keep It in the Building*: running AI models on our own hardware (privacy, cost, vendor independence, how open models compare) | Oct 2026 |
 
 View online: https://usc-ai-institute.github.io/presentations/
 
